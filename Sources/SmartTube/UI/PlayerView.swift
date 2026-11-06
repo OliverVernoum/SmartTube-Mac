@@ -16,7 +16,6 @@ final class PlayerLayerView: NSView {
         layer?.addSublayer(playerLayer)
         if AVPictureInPictureController.isPictureInPictureSupported() {
             pip = AVPictureInPictureController(playerLayer: playerLayer)
-            pip?.canStartPictureInPictureAutomaticallyFromInline = Settings.shared.autoPiP
         }
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -135,6 +134,9 @@ struct PlayerScreen: View {
         .ignoresSafeArea()
         .animation(.easeInOut(duration: 0.18), value: showControls)
         .animation(.easeInOut(duration: 0.18), value: panel)
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+            if settings.autoPiP && player.isPlaying { layerView?.pip?.startPictureInPicture() }
+        }
         .onChange(of: player.details?.isLive) { _, live in
             if live == true, settings.liveChatEnabled, panel == nil { panel = .chat }
         }
